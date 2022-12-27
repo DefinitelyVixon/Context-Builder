@@ -6,64 +6,64 @@ using UnityEngine;
 
 public class PlaceableObject : MonoBehaviour
 {
-    private bool isPlaced;
-
+    public Vector3[] localVertexPositions;
+    public Vector3[] globalVertexPositions;
     public Vector3Int Size { get; private set; }
-
-    public Vector3[] objVertices;
-
-    private void GetColliderVertexPositionsLocal()
+    
+    private void Start()
+    {
+        InitializeLocalColliderVertexPositions();
+        InitializeGlobalColliderVertexPositions();
+        CalculateCellSize();
+    }
+    
+    public virtual void Place()
+    {
+        Destroy(gameObject.GetComponent<FollowCursor>());
+    }
+    
+    private void InitializeLocalColliderVertexPositions()
     {
         BoxCollider bc = gameObject.GetComponent<BoxCollider>();
-        objVertices = new Vector3[4];
         Vector3 bcSize = bc.size;
         Vector3 bcCenter = bc.center;
-        
-        objVertices[0] = bcCenter + new Vector3(-bcSize.x, -bcSize.y, -bcSize.z) * 0.5f;
-        objVertices[1] = bcCenter + new Vector3(bcSize.x, -bcSize.y, -bcSize.z) * 0.5f;
-        objVertices[2] = bcCenter + new Vector3(bcSize.x, -bcSize.y, bcSize.z) * 0.5f;
-        objVertices[3] = bcCenter + new Vector3(-bcSize.x, -bcSize.y, bcSize.z) * 0.5f;
-        
-        // for (int i = 0; i < 4; i++)
-        // {
-        //     objVertices[i] = bc.center + new Vector3(
-        //         math.sign(i-1.5f) * bcSize.x, 
-        //         -bcSize.y, 
-        //         math.pow(-1,i) * bcSize.z) * 0.5f;
-        // }
+
+        localVertexPositions = new Vector3[4];
+        localVertexPositions[0] = bcCenter + new Vector3(-bcSize.x, -bcSize.y, -bcSize.z) * 0.5f;
+        localVertexPositions[1] = bcCenter + new Vector3(bcSize.x, -bcSize.y, -bcSize.z) * 0.5f;
+        localVertexPositions[2] = bcCenter + new Vector3(bcSize.x, -bcSize.y, bcSize.z) * 0.5f;
+        localVertexPositions[3] = bcCenter + new Vector3(-bcSize.x, -bcSize.y, bcSize.z) * 0.5f;
     }
 
-    private void CalculateSizeInCells()
+    private void InitializeGlobalColliderVertexPositions()
     {
-        Vector3Int[] vertices = new Vector3Int[objVertices.Length];
+        globalVertexPositions = new Vector3[localVertexPositions.Length];
 
-        for (int i = 0; i < vertices.Length; i++)
+        for (int i = 0; i < localVertexPositions.Length; i++)
         {
-            Vector3 worldPos = transform.TransformPoint(objVertices[i]);
-            vertices[i] = BuildingSystem.current.gridLayout.WorldToCell(worldPos);
+            Vector3 worldPos = gameObject.transform.TransformPoint(localVertexPositions[i]);
+            globalVertexPositions[i] = BuildingSystem.instance.gridLayout.WorldToCell(worldPos);
+        }
+    }
+    
+    private void CalculateCellSize()
+    {
+        Vector3Int[] intVector = new Vector3Int[globalVertexPositions.Length];
+        for (int i = 0; i < globalVertexPositions.Length; i++)
+        {
+            intVector[i] = Vector3Int.FloorToInt(globalVertexPositions[i]);
         }
 
         Size = new Vector3Int(
-            Math.Abs((vertices[0] - vertices[1]).x), 
-            Math.Abs((vertices[0] - vertices[3]).y), 
+            Math.Abs((intVector[0] - intVector[1]).x), 
+            Math.Abs((intVector[0] - intVector[3]).y), 
             1);
     }
 
     public Vector3 GetStartPosition()
     {
-        return transform.TransformPoint(objVertices[0]);
+        return transform.TransformPoint(localVertexPositions[0]);
     }
 
-    private void Start()
-    {
-        GetColliderVertexPositionsLocal();
-        CalculateSizeInCells();
-    }
 
-    public virtual void Place()
-    {
-        ObjectDrag drag = gameObject.GetComponent<ObjectDrag>();
-        Destroy(drag);
-        isPlaced = true;
-    }
 }

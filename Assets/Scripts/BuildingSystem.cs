@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 public class BuildingSystem : MonoBehaviour
 {
-    public static BuildingSystem current;
+    public static BuildingSystem instance;
     public GridLayout gridLayout;
     private Grid grid;
 
@@ -18,29 +21,33 @@ public class BuildingSystem : MonoBehaviour
     public GameObject industrialPrefab;
 
     private PlaceableObject objectToPlace;
-
+    private bool isPlacing;
+    
     #region Unity methods
 
     private void Awake()
     {
-        current = this;
+        instance = this;
         grid = gridLayout.gameObject.GetComponent<Grid>();
-        
+        isPlacing = false;
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Z))
+        if (!isPlacing)
         {
-            InitializeWithObject(residentialPrefab);
-        }
-        else if (Input.GetKeyDown(KeyCode.X))
-        {
-            InitializeWithObject(commercialPrefab);
-        }
-        else if (Input.GetKeyDown(KeyCode.C))
-        {
-            InitializeWithObject(industrialPrefab);
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                objectToPlace = CreatePlaceableObject(residentialPrefab);
+            }
+            else if (Input.GetKeyDown(KeyCode.X))
+            {
+                objectToPlace = CreatePlaceableObject(commercialPrefab);
+            }
+            else if (Input.GetKeyDown(KeyCode.C))
+            {
+                objectToPlace = CreatePlaceableObject(industrialPrefab);
+            }
         }
 
         if (!objectToPlace)
@@ -48,7 +55,7 @@ public class BuildingSystem : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             if (CanBePlaced(objectToPlace))
             {
@@ -60,10 +67,14 @@ public class BuildingSystem : MonoBehaviour
             {
                 Destroy(objectToPlace.gameObject);
             }
+            objectToPlace = null;
+            isPlacing = false;
         }
-        else if (Input.GetKeyDown(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
         {
             Destroy(objectToPlace.gameObject);
+            objectToPlace = null;
+            isPlacing = false;
         }
     }
 
@@ -78,13 +89,10 @@ public class BuildingSystem : MonoBehaviour
         {
             return raycastHit.point;
         }
-        else
-        {
-            return Vector3.zero;
-        }
+        return Vector3.zero;
     }
 
-    public Vector3 SnapCoordinateToGrid(Vector3 position)
+    public Vector3 SnapPositionToGrid(Vector3 position)
     {
         Vector3Int cellPosition = gridLayout.WorldToCell(position);
         position = grid.GetCellCenterWorld(cellPosition);
@@ -94,8 +102,6 @@ public class BuildingSystem : MonoBehaviour
     private static TileBase[] GetTilesBlock(BoundsInt area, Tilemap tilemap)
     {
         TileBase[] array = new TileBase[area.size.x * area.size.y * area.size.z];
-        
-        Debug.Log("Area Size: " + area.size.x + "," + area.size.y + "," + area.size.z);
 
         int counter = 0;
         foreach (var v in area.allPositionsWithin)
@@ -112,12 +118,13 @@ public class BuildingSystem : MonoBehaviour
 
     #region Building Placement
 
-    public void InitializeWithObject(GameObject prefab)
+    public PlaceableObject CreatePlaceableObject(GameObject prefab)
     {
-        Vector3 position = SnapCoordinateToGrid(new Vector3(21.5f, 0.5f, 21.5f));
-        GameObject obj = Instantiate(prefab, position, Quaternion.identity);
-        objectToPlace = obj.GetComponent<PlaceableObject>();
-        obj.AddComponent<ObjectDrag>();
+        GameObject obj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+        obj.AddComponent<FollowCursor>();
+        
+        isPlacing = true;
+        return obj.GetComponent<PlaceableObject>();
     }
 
     private bool CanBePlaced(PlaceableObject placeableObject)
@@ -132,7 +139,6 @@ public class BuildingSystem : MonoBehaviour
         {
             if (b == buildingTile)
             {
-                // UtilsClass.CreateWorldTextPopup();
                 return false;
             }
         }
@@ -145,8 +151,8 @@ public class BuildingSystem : MonoBehaviour
         mainTileMap.BoxFill(start, buildingTile,
             start.x,
             start.y,
-            start.x + size.x,
-            start.y + size.y);
+            start.x + size.x - 1,
+            start.y + size.y - 1);
     }
 
     #endregion

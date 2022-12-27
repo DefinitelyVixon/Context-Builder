@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4612916929765313845}
   - component: {fileID: 5770540150912045765}
   - component: {fileID: -28863644459723263}
+  - component: {fileID: 735506691714416736}
   m_Layer: 0
   m_Name: prefab_residential
   m_TagString: Untagged
@@ -121,7 +122,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02192ce917914e740bc33219646b2562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objVertices: []
+  localVertexPositions: []
+  globalVertexPositions: []
 --- !u!65 &-28863644459723263
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -135,3 +137,19 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1.1354877, y: 1.1101116, z: 1.2146318}
   m_Center: {x: -0.018082976, y: 0.5550558, z: 0}
+--- !u!114 &735506691714416736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4612916929774845685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0e66daf24cc67545b8baffbd3acd429, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isActive: 0
+  level: 0
+  connectedInputs: []
+  connectedOutputs: []
