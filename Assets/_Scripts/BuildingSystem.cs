@@ -1,7 +1,5 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -11,13 +9,12 @@ namespace _Scripts
     public class BuildingSystem : MonoBehaviour
     {
         public static BuildingSystem instance;
+
         public GridLayout gridLayout;
         private Grid grid;
-        
+
         public GameObject buildingTextObject;
-        public GameObject moneyTextObject;
-        public TextMeshProUGUI moneyText;
-        public int money = 100;
+        public static int money = 100;
 
         [SerializeField] private Tilemap mainTileMap;
         [SerializeField] private TileBase buildingTile;
@@ -26,63 +23,98 @@ namespace _Scripts
         public GameObject commercialPrefab;
         public GameObject industrialPrefab;
 
-        private PlaceableObject objectToPlace;
-        private bool isPlacing;
+        public static PlaceableObject objectToPlace;
+        public static bool isRaycastBlocked;
 
-        private void Awake()
+        void Awake()
         {
             instance = this;
             grid = gridLayout.gameObject.GetComponent<Grid>();
-            moneyText = moneyTextObject.GetComponent<TextMeshProUGUI>();
-            isPlacing = false;
         }
 
-        private void Update()
+        void Update()
         {
-            moneyText.text = "Money: " + money;
-            if (!isPlacing)
+            if (objectToPlace)
             {
-                if (Input.GetKeyDown(KeyCode.Z))
-                {
-                    objectToPlace = CreatePlaceableObject(residentialPrefab);
-                }
-                else if (Input.GetKeyDown(KeyCode.X))
-                {
-                    objectToPlace = CreatePlaceableObject(commercialPrefab);
-                }
-                else if (Input.GetKeyDown(KeyCode.C))
-                {
-                    objectToPlace = CreatePlaceableObject(industrialPrefab);
-                }
+                InBuildMode();
+            }
+        }
+
+        public void EnterBuildMode(int buildingType)
+        {
+            GameObject selectedBuildingPrefab;
+
+            if (buildingType == 0)
+            {
+                selectedBuildingPrefab = residentialPrefab;
+            }
+            else if (buildingType == 1)
+            {
+                selectedBuildingPrefab = commercialPrefab;
+            }
+            else // if (buildingType == 2)
+            {
+                selectedBuildingPrefab = industrialPrefab;
             }
 
-            if (!objectToPlace)
-            {
-                return;
-            }
+            int selectedBuildingCost = Building.BuildingCosts[buildingType];
 
+            if (money >= selectedBuildingCost)
+            {
+                objectToPlace = CreatePlaceableObject(selectedBuildingPrefab);
+                BuildingUI.instance.EnterBuildModeUI();
+            }
+            else
+            {
+                Debug.Log("Not enough money.");
+            }
+        }
+
+        public static void InBuildMode()
+        {
             if (Input.GetMouseButtonDown(0))
             {
-                if (CanBePlaced(objectToPlace))
+                if (!isRaycastBlocked) // If not clicked on UI
                 {
-                    objectToPlace.Place();
-                    Vector3Int start = gridLayout.WorldToCell(objectToPlace.GetStartPosition());
-                    TakeArea(start, objectToPlace.Size);
-                    objectToPlace.AssignBuildingScript();
+                    if (instance.CanBePlaced(objectToPlace)) // If building can be placed
+                    {
+                        objectToPlace.Place();
+                        int buildingTypeIndex = (int) objectToPlace.buildingType;
+                        money -= Building.BuildingCosts[buildingTypeIndex];
+                        BuildingUI.instance.PreviousBuildingUI();
+                    }
+                    else // If building can't be placed
+                    {
+                        Destroy(objectToPlace.GetComponent<Building>().buildingPopup.gameObject);
+                        Destroy(objectToPlace.gameObject);
+                        BuildingUI.instance.PreviousBuildingUI();
+                    }
                 }
-                else
+                else // If clicked on UI
                 {
+                    Destroy(objectToPlace.GetComponent<Building>().buildingPopup.gameObject);
                     Destroy(objectToPlace.gameObject);
                 }
 
                 objectToPlace = null;
-                isPlacing = false;
             }
-            else if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
+        }
+
+        public static void BlockRaycast()
+        {
+            if (objectToPlace)
             {
-                Destroy(objectToPlace.gameObject);
-                objectToPlace = null;
-                isPlacing = false;
+                objectToPlace.GetComponent<FollowCursor>().enabled = false;
+                isRaycastBlocked = true;
+            }
+        }
+
+        public static void AllowRaycast()
+        {
+            if (objectToPlace)
+            {
+                objectToPlace.GetComponent<FollowCursor>().enabled = true;
+                isRaycastBlocked = false;
             }
         }
 
@@ -112,8 +144,6 @@ namespace _Scripts
         {
             GameObject obj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
             obj.AddComponent<FollowCursor>();
-
-            isPlacing = true;
             return obj.GetComponent<PlaceableObject>();
         }
 
@@ -144,6 +174,5 @@ namespace _Scripts
                 start.x + size.x - 1,
                 start.y + size.y - 1);
         }
-        
     }
 }
