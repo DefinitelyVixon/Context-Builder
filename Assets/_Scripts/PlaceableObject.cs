@@ -1,15 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace _Scripts
 {
-    public class PlaceableObject : MonoBehaviour
+    public sealed class PlaceableObject : MonoBehaviour
     {
         [SerializeField] public BuildingType buildingType;
-        
+
         public Vector3[] localVertexPositions;
         public Vector3[] globalVertexPositions;
         public Vector3Int Size { get; private set; }
@@ -19,14 +16,17 @@ namespace _Scripts
             InitializeLocalColliderVertexPositions();
             InitializeGlobalColliderVertexPositions();
             CalculateCellSize();
+            AssignBuildingScript();
         }
 
-        public virtual void Place()
+        public void Place()
         {
             Destroy(gameObject.GetComponent<FollowCursor>());
+            Vector3Int start = BuildingSystem.instance.gridLayout.WorldToCell(GetStartPosition());
+            BuildingSystem.instance.TakeArea(start, Size);
         }
 
-        public void AssignBuildingScript()
+        private void AssignBuildingScript()
         {
             if (buildingType == BuildingType.Residential)
             {
@@ -45,7 +45,7 @@ namespace _Scripts
                 throw new Exception("Something went wrong.");
             }
         }
-        
+
         private void InitializeLocalColliderVertexPositions()
         {
             BoxCollider bc = gameObject.GetComponent<BoxCollider>();
@@ -88,11 +88,5 @@ namespace _Scripts
         {
             return transform.TransformPoint(localVertexPositions[0]);
         }
-    }
-    public enum BuildingType
-    {
-        Residential,
-        Commercial,
-        Industrial
     }
 }

@@ -7,7 +7,7 @@ namespace _Scripts
         private LayerMask hitMask;
         private Camera mainCamera;
         private Vector3 objPosition;
-    
+        
         private void Awake()
         {
             mainCamera = Camera.main;
