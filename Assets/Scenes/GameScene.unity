@@ -761,6 +761,7 @@ MonoBehaviour:
   residentialPrefab: {fileID: 4612916929774845685, guid: 9b13153811cfb5844ab9fecf99b83b5b, type: 3}
   commercialPrefab: {fileID: 7014549606844619536, guid: c510608d01604904a8d58b055f6251ef, type: 3}
   industrialPrefab: {fileID: 4784784878743539928, guid: 612df3d2577389246b98c9daeaddcb66, type: 3}
+  buildingConnectionMaterial: {fileID: 2100000, guid: 8ee7015f6449e9a42adc5e2182ab348f, type: 2}
 --- !u!224 &451540138
 RectTransform:
   m_ObjectHideFlags: 0
