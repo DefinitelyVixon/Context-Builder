@@ -22,9 +22,11 @@ namespace _Scripts
         public GameObject residentialPrefab;
         public GameObject commercialPrefab;
         public GameObject industrialPrefab;
-
+        public Material buildingConnectionMaterial;
+        
         public static PlaceableObject objectToPlace;
         public static bool isRaycastBlocked;
+        public static bool isEscapeMenuShown;
 
         void Awake()
         {
@@ -34,6 +36,19 @@ namespace _Scripts
 
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!isEscapeMenuShown)
+                {
+                    Debug.Log("Show Escape Menu");
+                    isEscapeMenuShown = true;
+                }
+                else
+                {
+                    Debug.Log("Hide Escape Menu");
+                    isEscapeMenuShown = false;
+                }
+            }
             if (objectToPlace)
             {
                 InBuildMode();
@@ -118,6 +133,13 @@ namespace _Scripts
             }
         }
 
+        public PlaceableObject CreatePlaceableObject(GameObject prefab)
+        {
+            GameObject obj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
+            obj.AddComponent<FollowCursor>();
+            return obj.GetComponent<PlaceableObject>();
+        }
+        
         public Vector3 SnapPositionToGrid(Vector3 position)
         {
             Vector3Int cellPosition = gridLayout.WorldToCell(position);
@@ -138,13 +160,6 @@ namespace _Scripts
             }
 
             return array;
-        }
-
-        public PlaceableObject CreatePlaceableObject(GameObject prefab)
-        {
-            GameObject obj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-            obj.AddComponent<FollowCursor>();
-            return obj.GetComponent<PlaceableObject>();
         }
 
         private bool CanBePlaced(PlaceableObject placeableObject)
