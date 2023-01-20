@@ -54,7 +54,7 @@ namespace _Scripts
             if (inputConnection)
             {
                 Debug.Log("This building already has a connection.");
-                isConnecting = false;
+                buildingPopup.SwitchConnectionMode();
                 return;
             }
 
@@ -68,25 +68,29 @@ namespace _Scripts
             if (targetBuildingType != buildingType) // Invalid connection
             {
                 Debug.Log("This building already has a connection.");
-                isConnecting = false;
+                buildingPopup.SwitchConnectionMode();
                 return;
             }
-
+            
+            Debug.Log("Connected " + selectedBuilding.name + " to " + this.name);
+            
             inputConnection = selectedBuilding;
             floatingBuildingText.faceColor = buildingColor;
             selectedBuilding.outputConnections.Add(this);
-            selectedBuilding.floatingBuildingText.outlineColor = Color.black;
             selectedBuilding.buildingPopup.UpdateElementValues();
 
-            GameObject connectionLine = new GameObject();
-
+            GameObject connectionLine = new GameObject
+            {
+                name = "BuildingConnection"
+            };
             LineRenderer lineRenderer = connectionLine.AddComponent<LineRenderer>();
             lineRenderer.startWidth = lineRenderer.endWidth = 0.3f;
 
             Vector3 sourceBuildingPosition = selectedBuilding.gameObject.transform.position;
             Vector3 targetBuildingPosition = gameObject.transform.position;
             lineRenderer.SetPositions(new[] {sourceBuildingPosition, targetBuildingPosition});
-
+            
+            lineRenderer.material = BuildingSystem.instance.buildingConnectionMaterial;
             lineRenderer.colorGradient = new Gradient
             {
                 colorKeys = new[]
@@ -95,11 +99,8 @@ namespace _Scripts
                     new GradientColorKey(buildingColor, 1.0f)
                 }
             };
-
-            Shader defaultShader = Shader.Find("Legacy Shaders/Particles/Alpha Blended Premultiply");
-            lineRenderer.material = new Material(defaultShader);
-
-            isConnecting = false;
+            lineRenderer.sortingOrder = 3;
+            selectedBuilding.buildingPopup.SwitchConnectionMode();
         }
 
         protected void SelectBuilding()
@@ -114,14 +115,17 @@ namespace _Scripts
             {
                 if (!selectedBuilding) // Select
                 {
+                    Debug.Log("Select " + gameObject.name);
                     buildingPopup.ShowPopupAction();
                 }
                 else if (selectedBuilding == this) // Deselect
                 {
+                    Debug.Log("Deselect " + gameObject.name);
                     buildingPopup.HidePopupAction();
                 }
                 else if (selectedBuilding != this) // Switch selection
                 {
+                    Debug.Log("Switch " + selectedBuilding.name + " to " + gameObject.name);
                     selectedBuilding.buildingPopup.HidePopupAction();
                     buildingPopup.ShowPopupAction();
                 }
@@ -155,7 +159,6 @@ namespace _Scripts
 
         public void UpdateBuildingText()
         {
-            // floatingBuildingText.text = outputConnections.Count + "/" + maxConnections;
             floatingBuildingText.text = "Level " + level;
         }
 

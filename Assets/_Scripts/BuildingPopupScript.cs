@@ -13,7 +13,7 @@ namespace _Scripts
         private TextMeshProUGUI buildingLevelText;
 
         private TextMeshProUGUI connectionCountText;
-        private Button connectButton;
+        public Button connectButton;
         private TextMeshProUGUI connectButtonText;
 
         private TextMeshProUGUI upgradeCostText;
@@ -97,10 +97,24 @@ namespace _Scripts
         {
             if (building.outputConnections.Count < building.maxConnections)
             {
-                Building.isConnecting = true;
+                SwitchConnectionMode();
             }
         }
 
+        public void SwitchConnectionMode()
+        {
+            if (Building.isConnecting)
+            {
+                connectButton.GetComponent<Image>().color = Color.white;
+                Building.isConnecting = false;
+            }
+            else
+            {
+                connectButton.GetComponent<Image>().color = building.buildingColor;
+                Building.isConnecting = true;
+            }
+        }
+        
         void UpgradeBuildingAction()
         {
             if (BuildingSystem.money >= building.GetUpgradeCost())
