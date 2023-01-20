@@ -65,19 +65,19 @@ namespace RTS_Cam
 
         #region Targeting
 
-        public Transform targetFollow; //target to follow
+        // public Transform targetFollow; //target to follow
         public Vector3 targetOffset;
 
         /// <summary>
         /// are we following target
         /// </summary>
-        public bool FollowingTarget
-        {
-            get
-            {
-                return targetFollow != null;
-            }
-        }
+        // public bool FollowingTarget
+        // {
+        //     get
+        //     {
+        //         return targetFollow != null;
+        //     }
+        // }
 
         #endregion
 
@@ -191,10 +191,10 @@ namespace RTS_Cam
         /// </summary>
         private void CameraUpdate()
         {
-            if (FollowingTarget)
-                FollowTarget();
-            else
-                Move();
+            // if (FollowingTarget)
+            //     FollowTarget();
+            // else
+            Move();
 
             HeightCalculation();
             Rotation();
@@ -289,11 +289,11 @@ namespace RTS_Cam
         /// <summary>
         /// follow targetif target != null
         /// </summary>
-        private void FollowTarget()
-        {
-            Vector3 targetPos = new Vector3(targetFollow.position.x, m_Transform.position.y, targetFollow.position.z) + targetOffset;
-            m_Transform.position = Vector3.MoveTowards(m_Transform.position, targetPos, Time.deltaTime * followingSpeed);
-        }
+        // private void FollowTarget()
+        // {
+        //     Vector3 targetPos = new Vector3(targetFollow.position.x, m_Transform.position.y, targetFollow.position.z) + targetOffset;
+        //     m_Transform.position = Vector3.MoveTowards(m_Transform.position, targetPos, Time.deltaTime * followingSpeed);
+        // }
 
         /// <summary>
         /// limit camera position
@@ -312,18 +312,18 @@ namespace RTS_Cam
         /// set the target
         /// </summary>
         /// <param name="target"></param>
-        public void SetTarget(Transform target)
-        {
-            targetFollow = target;
-        }
+        // public void SetTarget(Transform target)
+        // {
+        //     targetFollow = target;
+        // }
 
         /// <summary>
         /// reset the target (target is set to null)
         /// </summary>
-        public void ResetTarget()
-        {
-            targetFollow = null;
-        }
+        // public void ResetTarget()
+        // {
+        //     targetFollow = null;
+        // }
 
         /// <summary>
         /// calculate distance to ground
